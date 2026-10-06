@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#06162f">
+  <link rel="preconnect" href="https://platform-api2.max.ru" crossorigin>
+  <title>Русская душа. МУЗ-ЧАТ</title>
+  <link rel="stylesheet" href="./styles.css?v=40">
+  <script src="https://st.max.ru/js/max-web-app.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="icon-button back-button hidden" id="backButton" aria-label="Назад">←</button>
+      <div class="brand-mark">РД</div>
+      <div class="brand-copy"><strong>Русская душа</strong><span>МУЗ-ЧАТ</span></div>
+      <button class="icon-button" id="helpButton" aria-label="Пройти обучение заново">?</button>
+    </header>
+
+    <main id="mainView" class="view active">
+      <section class="hero">
+        <p class="eyebrow">Музыка, в которой есть история</p>
+        <p>Слушайте новинки, сохраняйте любимое и заказывайте песню, клип или полный комплекс.</p>
+      </section>
+
+      <section class="main-actions" aria-label="Главные разделы">
+        <button class="feature-card music-card" data-open="music">
+          <span class="feature-icon">♫</span>
+          <span><strong>Музыка</strong><small>Треки, клипы и плейлисты</small></span>
+          <span class="arrow">→</span>
+        </button>
+        <button class="feature-card order-card" data-open="order">
+          <span class="feature-icon">✦</span>
+          <span><strong>Заказать</strong><small>Песня, клип или комплекс</small></span>
+          <span class="arrow">→</span>
+        </button>
+      </section>
+
+      <section class="fresh-strip">
+        <div><span class="pulse-dot"></span><strong>Свежее в МУЗ-ЧАТЕ</strong></div>
+        <p>Новые релизы и истории исполнителей скоро появятся здесь.</p>
+      </section>
+
+      <button class="about-link" data-open="about">О нас</button>
+    </main>
+
+    <main id="musicView" class="view">
+      <section class="section-heading"><p class="eyebrow">Слушайте с душой</p><h2>Музыка</h2></section>
+      <nav class="tabs" aria-label="Разделы музыки">
+        <button class="tab active" data-tab="songs">Песни</button>
+        <button class="tab" data-tab="clips">Клипы</button>
+        <button class="tab" data-tab="playlists">Плейлисты</button>
+        <button class="tab" data-tab="favorites">Любимое</button>
+      </nav>
+      <div class="catalog-tools">
+        <label class="catalog-search"><span>⌕</span><input id="catalogSearch" type="search" autocomplete="off" placeholder="Найти по названию" aria-label="Поиск по названию"></label>
+        <button class="shuffle-button" id="shuffleCatalog" type="button" aria-label="Перемешать материалы">↝ Перемешать</button>
+      </div>
+      <label class="catalog-sort">Сортировка
+        <select id="catalogSort" aria-label="Сортировка материалов">
+          <option value="default">По порядку</option>
+          <option value="az">От А до Я</option>
+          <option value="za">От Я до А</option>
+        </select>
+      </label>
+      <section id="catalog" class="catalog"></section>
+    </main>
+
+    <main id="orderView" class="view">
+      <section class="section-heading"><p class="eyebrow">Ваша история — наше творчество</p><h2>Что хотите заказать?</h2><p>Выберите направление — откроется подходящая анкета.</p></section>
+      <section id="orderTypes" class="order-types" aria-label="Виды заказа">
+        <button type="button" data-order-type="song"><span>♫</span><strong>Песня</strong><small>Создадим песню по вашей истории</small></button>
+        <button type="button" data-order-type="clip"><span>▶</span><strong>Клип</strong><small>Создадим видеоклип для вашей песни</small></button>
+        <button type="button" data-order-type="complex"><span>✦</span><strong>Комплекс</strong><small>Песня + клип под ключ</small></button>
+      </section>
+      <form class="order-form hidden" data-order-form="song">
+        <div class="order-form-title"><button type="button" class="order-type-back">←</button><h3>Анкета на песню</h3></div>
+        <label>Согласны ли Вы на обработку персональных данных?<select name="consent" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <label>Ваше ФИО<input name="fullName" required maxlength="200"></label>
+        <label>Есть ли у вас текст песни?<select name="hasLyrics" class="lyrics-choice" required><option value="">Выберите ответ</option><option value="yes">Да</option><option value="no">Нет</option></select></label>
+        <div class="lyrics-new hidden">
+          <label>Кому будет посвящена песня?<input name="recipient" maxlength="300" placeholder="Маме, папе, подруге, парню и т. д."></label>
+          <label>Повод для песни<input name="occasion" maxlength="300" placeholder="Дата отношений, юбилей, день рождения и т. д."></label>
+          <label>Кратко напишите моменты из жизни, которые хотите услышать в песне<textarea name="lifeMoments" maxlength="2000" rows="5"></textarea></label>
+        </div>
+        <div class="song-options hidden">
+          <label>Выберите исполнителя<select name="performer"><option value="">Выберите ответ</option><option>Мужчина</option><option>Женщина</option></select></label>
+          <label>В каком стиле исполнить песню?<select name="musicStyle"><option value="">Выберите стиль</option><option>Поп (современная музыка)</option><option>Рок (гитары, драйв, энергия)</option><option>Джаз (свободный и расслабленный, с элементами импровизации)</option><option>Хип-хоп (ритмичные рифмы, бит)</option><option>Электронная музыка (танцевальные клубы и треки)</option><option>Классическая музыка (оркестровая музыка)</option><option>Фолк (народные мотивы и акустика)</option><option>Другое</option></select></label>
+          <label>Выберите настроение песни<select name="mood"><option value="">Выберите настроение</option><option>Глубокое, лиричное</option><option>Нежное, романтичное</option><option>Позитивное, яркое</option><option>Энергичное, танцевальное</option><option>Другое</option></select></label>
+          <label>Согласны ли Вы на размещение песни в наших социальных сетях?<select name="socialPermission"><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        </div>
+        <button class="primary-button" type="submit">Отправить заявку</button>
+      </form>
+      <form class="order-form hidden" data-order-form="clip">
+        <div class="order-form-title"><button type="button" class="order-type-back">←</button><h3>Анкета на клип</h3></div>
+        <label>Согласны ли Вы на обработку персональных данных?<select name="consent" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <label>Ваше ФИО<input name="fullName" required maxlength="200"></label>
+        <label>Выберите формат видео<select name="videoFormat" required><option value="">Выберите формат</option><option>Вертикальный</option><option>Горизонтальный</option><option>Другое</option></select></label>
+        <label>Выберите длительность клипа<select name="clipDuration" required><option value="">Выберите длительность</option><option>30 секунд</option><option>От 30 секунд до 1 минуты</option><option>От 1 минуты до 3 минут</option></select></label>
+        <fieldset class="order-checks" data-required-checks><legend>Укажите цель клипа</legend><label><input type="checkbox" name="clipPurpose" value="Рекламный"> Рекламный</label><label><input type="checkbox" name="clipPurpose" value="Поздравительный"> Поздравительный</label></fieldset>
+        <label>Нужен ли водяной знак?<select name="watermark" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <label>Есть ли у Вас фото и видеоматериалы?<select name="sourceMaterials" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <fieldset class="order-checks" data-required-checks><legend>Нужно ли добавлять текстовые элементы?</legend><label><input type="checkbox" name="textElements" value="Субтитры"> Субтитры</label><label><input type="checkbox" name="textElements" value="Поздравления"> Поздравления</label></fieldset>
+        <label>Нужны ли переходы и спецэффекты?<select name="transitions" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <button class="primary-button" type="submit">Отправить заявку</button>
+      </form>
+      <form class="order-form hidden" data-order-form="complex">
+        <div class="order-form-title"><button type="button" class="order-type-back">←</button><h3>Анкета на комплекс</h3></div>
+        <label>Согласны ли Вы на обработку персональных данных?<select name="consent" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <label>Ваше ФИО<input name="fullName" required maxlength="200"></label>
+        <label>Есть ли у вас текст песни?<select name="hasLyrics" class="lyrics-choice" required><option value="">Выберите ответ</option><option value="yes">Да</option><option value="no">Нет</option></select></label>
+        <div class="lyrics-new hidden"><label>Кому будет посвящена песня?<input name="recipient" maxlength="300" placeholder="Маме, папе, подруге, парню и т. д."></label><label>Повод для песни<input name="occasion" maxlength="300"></label><label>Кратко напишите моменты из жизни, которые хотите услышать в песне<textarea name="lifeMoments" maxlength="2000" rows="5"></textarea></label></div>
+        <div class="song-options hidden"><label>Выберите исполнителя<select name="performer"><option value="">Выберите ответ</option><option>Мужчина</option><option>Женщина</option></select></label><label>В каком стиле исполнить песню?<select name="musicStyle"><option value="">Выберите стиль</option><option>Поп (современная музыка)</option><option>Рок (гитары, драйв, энергия)</option><option>Джаз (свободный и расслабленный, с элементами импровизации)</option><option>Хип-хоп (ритмичные рифмы, бит)</option><option>Электронная музыка (танцевальные клубы и треки)</option><option>Классическая музыка (оркестровая музыка)</option><option>Фолк (народные мотивы и акустика)</option><option>Другое</option></select></label><label>Выберите настроение песни<select name="mood"><option value="">Выберите настроение</option><option>Глубокое, лиричное</option><option>Нежное, романтичное</option><option>Позитивное, яркое</option><option>Энергичное, танцевальное</option><option>Другое</option></select></label><label>Согласны ли Вы на размещение песни в наших социальных сетях?<select name="socialPermission"><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label></div>
+        <div class="order-subheading">Параметры клипа</div>
+        <label>Выберите формат видео<select name="videoFormat" required><option value="">Выберите формат</option><option>Вертикальный</option><option>Горизонтальный</option><option>Другое</option></select></label>
+        <label>Выберите длительность клипа<select name="clipDuration" required><option value="">Выберите длительность</option><option>30 секунд</option><option>От 30 секунд до 1 минуты</option><option>От 1 минуты до 3 минут</option></select></label>
+        <fieldset class="order-checks" data-required-checks><legend>Укажите цель клипа</legend><label><input type="checkbox" name="clipPurpose" value="Рекламный"> Рекламный</label><label><input type="checkbox" name="clipPurpose" value="Поздравительный"> Поздравительный</label></fieldset>
+        <label>Нужен ли водяной знак?<select name="watermark" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <label>Есть ли у Вас фото и видеоматериалы?<select name="sourceMaterials" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <fieldset class="order-checks" data-required-checks><legend>Нужно ли добавлять текстовые элементы?</legend><label><input type="checkbox" name="textElements" value="Субтитры"> Субтитры</label><label><input type="checkbox" name="textElements" value="Поздравления"> Поздравления</label></fieldset>
+        <label>Нужны ли переходы и спецэффекты?<select name="transitions" required><option value="">Выберите ответ</option><option>Да</option><option>Нет</option></select></label>
+        <button class="primary-button" type="submit">Отправить заявку</button>
+      </form>
+    </main>
+  </div>
+
+  <button class="chibi-help hidden" id="chibiHelp" aria-label="Открыть чат с Помощницей"><img src="./assets/mascot/1000022710.webp" alt="Помощница" decoding="async" fetchpriority="high"></button>
+
+  <div class="modal hidden" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="modal-card about-card">
+      <button class="modal-close" data-close aria-label="Закрыть">×</button>
+      <div class="about-hero"><img class="about-asya" src="./assets/mascot/1000022712.webp" alt="Помощница проекта" loading="lazy" decoding="async"><div><p class="eyebrow">Музыка с личной историей</p><h2 id="aboutTitle">Русская душа</h2><span>МУЗ-ЧАТ</span></div></div>
+      <p class="about-lead">«Русская душа» — музыкальный проект о людях, памяти и чувствах: мы создаём песни и клипы по настоящим историям, собираем авторскую музыку и помогаем важным словам обрести своё звучание.</p>
+    </div>
+  </div>
+
+  <div class="assistant-layer hidden" id="assistantLayer">
+    <div class="assistant-spotlight" id="assistantSpotlight" aria-hidden="true"></div>
+    <button class="assistant-close" id="assistantClose" aria-label="Закрыть">×</button>
+    <div class="assistant-stage">
+    <div class="assistant-portrait"><img id="assistantImage" class="assistant-image" alt="Помощница"></div>
+    <div class="assistant-copy">
+      <span class="assistant-name">Помощница</span>
+      <p id="assistantText"></p>
+      <button class="primary-button small" id="assistantNext">Продолжить</button>
+    </div>
+    </div>
+  </div>
+
+
+  <div class="chat-panel hidden" id="chatPanel" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+    <button id="chatClose" class="modal-close" aria-label="Закрыть чат">×</button>
+    <div class="chat-scene">
+      <img class="chat-asya" src="./assets/mascot/1000022711.webp" alt="Помощница" loading="lazy" decoding="async">
+      <section class="chat-card">
+        <span class="assistant-name">Помощница</span>
+        <h2 id="chatTitle">Чем я могу помочь?</h2>
+        <p class="chat-intro">Напишите вопрос или расскажите о проблеме. Сообщение получит наша команда поддержки.</p>
+        <div class="chat-route" id="chatRoute">
+          <strong id="chatGreeting">Вас приветствует Помощница</strong>
+          <span>Что вы хотите сделать?</span>
+          <button type="button" id="supportRoute">Задать вопрос</button>
+          <button type="button" id="talkRoute">Поговорить с Помощницей</button>
+        </div>
+        <button type="button" class="chat-reset" id="chatReset">Новый диалог</button>
+        <div class="chat-body" id="chatBody" role="log" aria-live="polite" aria-label="Сообщения"></div>
+        <form id="chatForm" class="chat-form"><textarea id="chatInput" aria-label="Сообщение Помощнице" rows="2" maxlength="2000" placeholder="Напишите вопрос или сообщение..." required></textarea><button type="submit" aria-label="Отправить сообщение">➤</button></form>
+      </section>
+    </div>
+  </div>
+
+  <section id="welcomeScene" class="welcome-scene hidden" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="welcome-inner">
+      <img src="./assets/mascot/1000022718.webp" alt="Помощница приветствует вас" class="welcome-asya" decoding="async" fetchpriority="high">
+      <div class="welcome-copy"><span class="assistant-name">Помощница</span><h2 id="welcomeTitle">Давайте знакомиться!</h2><p>Я виртуальная помощница «Русской души». Помогу найти музыку, рассказать вашу историю и освоиться в приложении.</p><button id="welcomeNext" class="primary-button">Познакомиться с приложением</button></div>
+    </div>
+  </section>
+  <div class="toast hidden" id="toast"></div>
+  <script type="module" src="./app.js?v=40"></script>
+</body>
+</html>
+
