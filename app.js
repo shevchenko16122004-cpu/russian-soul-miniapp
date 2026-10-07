@@ -581,7 +581,7 @@ function layoutAssistant() {
   // Put the guide on the opposite side of the screen from the highlighted
   // control. Form fields often move as their form opens, so this is derived
   // from the live rectangle rather than maintained step by step.
-  const placeAtTop = activeStep?.placement === 'top' || Boolean(targetRect && targetRect.top + targetRect.height / 2 > window.innerHeight * .36);
+  const placeAtTop = activeStep?.placement === 'top' || Boolean(targetRect && targetRect.top + targetRect.height / 2 > window.innerHeight * .62);
   assistant.layer.classList.toggle('stage-top', placeAtTop);
   // Keep the guide portrait anchored in one place between tour steps.
   assistant.layer.classList.remove('portrait-right');
@@ -936,4 +936,5 @@ document.querySelector('#welcomeNext').addEventListener('click', () => {
   }
   else document.querySelector('#chibiHelp').classList.remove('hidden');
 });
+
 
