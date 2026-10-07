@@ -604,12 +604,6 @@ async function showAssistant(index = 0, message = null) {
   clearTimeout(assistant.unlockTimer);
   const revision = ++portraitRevision;
   const step = message || assistant.steps[index];
-  const prepared = await preparePortrait(step.image);
-  if (revision !== portraitRevision) return;
-  const nextImage = prepared ? prepared.cloneNode() : null;
-  if (nextImage) await nextImage.decode();
-  if (revision !== portraitRevision) return;
-  assistant.unlockTimer = setTimeout(() => { assistant.next.disabled = false; }, 350);
   assistant.index = index;
   activeStep = step;
   document.querySelector('#chibiHelp').classList.toggle('hidden', !step.showChibi);
@@ -625,6 +619,18 @@ async function showAssistant(index = 0, message = null) {
     renderCatalog(step.tab);
     document.querySelector('[data-tab="' + step.tab + '"]').scrollIntoView({block: 'nearest', inline: 'nearest', behavior: 'instant'});
   }
+  const target = step.target ? document.querySelector(step.target) : null;
+  const targetRect = target?.getBoundingClientRect();
+  const guideAtTop = step.placement === 'top' || Boolean(targetRect && targetRect.top + targetRect.height / 2 > window.innerHeight * .62);
+  // These two portraits have clear pointing gestures. Select the direction
+  // from the live target position so the gesture always leads to the control.
+  const portraitFile = message ? step.image : (guideAtTop ? '1000022722.webp' : '1000022719.webp');
+  const prepared = await preparePortrait(portraitFile);
+  if (revision !== portraitRevision) return;
+  const nextImage = prepared ? prepared.cloneNode() : null;
+  if (nextImage) await nextImage.decode();
+  if (revision !== portraitRevision) return;
+  assistant.unlockTimer = setTimeout(() => { assistant.next.disabled = false; }, 350);
   assistant.text.textContent = step.text;
 
   assistant.next.textContent = message || index === assistant.steps.length - 1 ? 'Понятно' : 'Далее';
