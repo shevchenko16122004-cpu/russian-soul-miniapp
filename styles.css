@@ -491,7 +491,7 @@ button { cursor: pointer; transition: transform .15s ease, background-color .15s
   left: 10px;
   width: min(230px, calc(100vw - 150px));
   height: min(26dvh, 185px, calc(100vw - 165px));
-  margin-bottom: 8px;
+  margin-bottom: 0;
   overflow: visible;
 }
 

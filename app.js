@@ -919,16 +919,21 @@ const firstLaunchKey = "muzFirstLaunchCompletedV1";
 let firstLaunchThisSession = false;
 if (localStorage.getItem(firstLaunchKey) || localStorage.getItem('muzOnboardingSeen')) {
   localStorage.setItem(firstLaunchKey, "1");
-  document.querySelector('#chibiHelp').classList.remove('hidden');
+  showWelcome(true);
 } else {
   firstLaunchThisSession = true;
   document.querySelector('#chibiHelp').classList.add('hidden');
   if (!onboardingStarted) showWelcome();
 }
 
-function showWelcome() {
+function showWelcome(returning = false) {
   document.querySelector('#chibiHelp').classList.add('hidden');
   onboardingStarted = true;
+  document.querySelector('#welcomeTitle').textContent = returning ? 'С возвращением!' : 'Давайте знакомиться!';
+  document.querySelector('#welcomeText').textContent = returning
+    ? 'Рады снова видеть вас в «Русской душе». Выбирайте музыку, смотрите клипы или продолжайте общение с Помощницей.'
+    : 'Я виртуальная помощница «Русской души». Помогу найти музыку, рассказать вашу историю и освоиться в приложении.';
+  document.querySelector('#welcomeNext').textContent = returning ? 'Продолжить' : 'Познакомиться с приложением';
   document.querySelector('#welcomeScene').classList.remove('hidden');
   document.querySelector('#welcomeNext').focus();
 }
