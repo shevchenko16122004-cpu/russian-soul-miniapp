@@ -577,20 +577,22 @@ function swapPortrait(img) {
 function layoutAssistant() {
   if (assistant.layer.classList.contains('hidden')) return;
   const target = activeStep?.target ? document.querySelector(activeStep.target) : null;
-  const targetRect = target?.getBoundingClientRect();
-  const placeAtTop = activeStep?.placement === 'top';
+  let targetRect = target?.getBoundingClientRect();
+  // Put the guide on the opposite side of the screen from the highlighted
+  // control. Form fields often move as their form opens, so this is derived
+  // from the live rectangle rather than maintained step by step.
+  const placeAtTop = activeStep?.placement === 'top' || Boolean(targetRect && targetRect.top + targetRect.height / 2 > window.innerHeight * .36);
   assistant.layer.classList.toggle('stage-top', placeAtTop);
   // Keep the guide portrait anchored in one place between tour steps.
   assistant.layer.classList.remove('portrait-right');
+  targetRect = target?.getBoundingClientRect();
   const portrait = document.querySelector('.assistant-portrait').getBoundingClientRect();
   if (target) {
     const rect = targetRect;
     const stage = document.querySelector('.assistant-stage').getBoundingClientRect();
-    const occupiedBottom = Math.max(stage.bottom, portrait.bottom);
-    // Bottom targets stay below the top scene; other targets stay above the bottom scene.
-    const desiredTop = placeAtTop
-      ? Math.min(window.innerHeight - rect.height - 16, occupiedBottom + 18)
-      : Math.max(16, (portrait.top - 20 - rect.height) / 2);
+    const freeStart = placeAtTop ? Math.max(stage.bottom, portrait.bottom) + 18 : 16;
+    const freeEnd = placeAtTop ? window.innerHeight - 16 : Math.min(stage.top, portrait.top) - 18;
+    const desiredTop = Math.max(freeStart, Math.min(freeEnd - rect.height, freeStart + (freeEnd - freeStart - rect.height) / 2));
     window.scrollBy({top: rect.top - desiredTop, behavior: 'instant'});
   }
   positionSpotlight(activeStep?.target);
@@ -628,7 +630,6 @@ async function showAssistant(index = 0, message = null) {
   assistant.next.textContent = message || index === assistant.steps.length - 1 ? 'Понятно' : 'Далее';
   assistant.layer.classList.remove('hidden');
   document.body.classList.add('onboarding-active');
-  layoutAssistant();
   if (nextImage) swapPortrait(nextImage);
   requestAnimationFrame(layoutAssistant);
 }
