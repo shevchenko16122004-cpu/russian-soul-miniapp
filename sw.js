@@ -1,6 +1,6 @@
-const VERSION = "rd-shell-v40";
+const VERSION = "rd-shell-v41";
 const SHELL = [
-  "./", "./index.html", "./styles.css?v=40", "./app.js?v=40", "./media-loader.js?v=31", "./durations.json",
+  "./", "./index.html", "./styles.css?v=41", "./app.js?v=41", "./media-loader.js?v=31", "./durations.json",
   "./assets/mascot/1000022710.webp", "./assets/mascot/1000022711.webp",
   "./assets/mascot/1000022712.webp", "./assets/mascot/1000022718.webp"
 ];

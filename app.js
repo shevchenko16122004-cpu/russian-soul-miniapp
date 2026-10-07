@@ -568,14 +568,10 @@ function swapPortrait(img) {
   const previous = assistant.image;
   img.className = 'assistant-image';
   img.alt = 'Помощница';
-  previous.removeAttribute('id');
   img.id = 'assistantImage';
-  frame.append(img);
+  frame.replaceChild(img, previous);
   assistant.image = img;
   sizePortrait(img);
-  const duration = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 320;
-  img.animate([{opacity: 0}, {opacity: 1}], {duration, easing: 'ease-in-out'});
-  previous.animate([{opacity: 1}, {opacity: 0}], {duration, easing: 'ease-in-out', fill: 'forwards'}).finished.then(() => previous.remove());
 }
 
 function layoutAssistant() {
@@ -584,7 +580,8 @@ function layoutAssistant() {
   const targetRect = target?.getBoundingClientRect();
   const placeAtTop = activeStep?.placement === 'top';
   assistant.layer.classList.toggle('stage-top', placeAtTop);
-  assistant.layer.classList.toggle('portrait-right', Boolean(targetRect && targetRect.left + targetRect.width / 2 < window.innerWidth / 2));
+  // Keep the guide portrait anchored in one place between tour steps.
+  assistant.layer.classList.remove('portrait-right');
   const portrait = document.querySelector('.assistant-portrait').getBoundingClientRect();
   if (target) {
     const rect = targetRect;
@@ -910,11 +907,6 @@ if ("serviceWorker" in navigator) {
       registration.update();
     } catch (_) {}
   });
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (sessionStorage.getItem("muzFreshShellV28")) return;
-    sessionStorage.setItem("muzFreshShellV28", "1");
-    location.reload();
-  });
 }
 const firstLaunchKey = "muzFirstLaunchCompletedV1";
 let firstLaunchThisSession = false;
@@ -923,7 +915,6 @@ if (localStorage.getItem(firstLaunchKey) || localStorage.getItem('muzOnboardingS
   document.querySelector('#chibiHelp').classList.remove('hidden');
 } else {
   firstLaunchThisSession = true;
-  localStorage.setItem(firstLaunchKey, "1");
   document.querySelector('#chibiHelp').classList.add('hidden');
   if (!onboardingStarted) showWelcome();
 }
@@ -935,6 +926,7 @@ function showWelcome() {
   document.querySelector('#welcomeNext').focus();
 }
 document.querySelector('#welcomeNext').addEventListener('click', () => {
+  localStorage.setItem(firstLaunchKey, "1");
   document.querySelector('#welcomeScene').classList.add('hidden');
   openSection('main');
   if (firstLaunchThisSession) {

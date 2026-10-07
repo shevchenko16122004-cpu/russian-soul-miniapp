@@ -460,15 +460,15 @@ button { cursor: pointer; transition: transform .15s ease, background-color .15s
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; } }
 
 .chibi-help { border-radius: 50%; }
-.assistant-spotlight { transition-duration: .5s; }
-.assistant-image { animation-duration: .5s; transition-duration: .5s; }
+.assistant-spotlight { transition-duration: .28s; }
+.assistant-image { animation-duration: .18s; transition-duration: .18s; }
 .onboarding-active .chibi-help { bottom: var(--tour-button-bottom, 14px); }
 @media (prefers-reduced-motion: reduce) { .assistant-spotlight, .assistant-image { transition-duration: .01ms; animation-duration: .01ms; } }
 .tour-circle-step .assistant-image { width: calc(100% - 130px); max-width: 270px; left: max(14px, calc(50% - 260px)); right: auto; }
 
 /* One stable portrait frame for every tour step, including the round button. */
 .assistant-portrait { position: absolute; z-index: 2; pointer-events: none; left: max(14px, calc(50% - 260px)); width: min(230px, calc(100vw - 130px)); height: min(32dvh, 270px); overflow: hidden; }
-.assistant-portrait .assistant-image { position: absolute; margin: 0; right: auto; bottom: auto; max-width: none; object-fit: fill; transition: none; animation: portraitFade .5s ease both; }
+.assistant-portrait .assistant-image { position: absolute; margin: 0; right: auto; bottom: auto; max-width: none; object-fit: fill; transition: none; animation: none; }
 @keyframes portraitFade { from { opacity: 0; } to { opacity: 1; } }
 .assistant-portrait { height: min(30dvh, 240px, calc(100vw - 150px)); }
 
