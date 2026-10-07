@@ -1,6 +1,6 @@
-const VERSION = "rd-shell-v48";
+const VERSION = "rd-shell-v49";
 const SHELL = [
-  "./", "./index.html", "./styles.css?v=48", "./app.js?v=48", "./media-loader.js?v=31", "./durations.json",
+  "./", "./index.html", "./styles.css?v=49", "./app.js?v=49", "./media-loader.js?v=31", "./durations.json",
   "./assets/mascot/1000022710.webp", "./assets/mascot/1000022711.webp",
   "./assets/mascot/1000022712.webp", "./assets/mascot/1000022718.webp"
 ];
@@ -31,7 +31,3 @@ self.addEventListener("fetch", event => {
     return response;
   })));
 });
-
-
-
-

@@ -11,6 +11,7 @@ WebApp?.expand?.();
 const views = {
   main: document.querySelector("#mainView"),
   music: document.querySelector("#musicView"),
+  sparks: document.querySelector("#sparksView"),
   order: document.querySelector("#orderView")
 };
 const backButton = document.querySelector("#backButton");
@@ -105,6 +106,7 @@ function openSection(name) {
   Object.entries(views).forEach(([key, view]) => view.classList.toggle("active", key === name));
   backButton.classList.toggle("hidden", name === "main");
   if (name === "order") showOrderTypes();
+  if (name === "sparks") loadSparkStatus();
   if (name === "music") {
     catalogLoading = true;
     document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.tab === "songs"));
@@ -428,6 +430,18 @@ const assistant = {
     "text": "Ячейка «Заказать» позволяет выбрать песню, клип или комплекс «песня + клип»."
   },
   {
+    "view": "main",
+    "target": "[data-open=\"sparks\"]",
+    "image": "1000022719.webp",
+    "text": "В «Искорках» можно ежедневно получать награду за вход и следить за накоплением на песню, клип или комплекс."
+  },
+  {
+    "view": "sparks",
+    "target": ".spark-balance-card",
+    "image": "1000022720.webp",
+    "text": "Нажмите «Получить 25 Искорок» один раз в день. Когда накопится нужная сумма, возле приза станет доступна кнопка оформления."
+  },
+  {
     "view": "order",
     "target": "#orderTypes",
     "image": "1000022720.webp",
@@ -678,6 +692,70 @@ let chatMode = 'support';
 let talkHistory = [];
 const maxProfile = WebApp?.initDataUnsafe?.user || {};
 const maxDisplayName = maxProfile.username || maxProfile.first_name || '';
+
+const sparkBalance = document.querySelector('#sparkBalance');
+const claimSparks = document.querySelector('#claimSparks');
+const sparkClaimHint = document.querySelector('#sparkClaimHint');
+const sparkOrderNotice = document.querySelector('#sparkOrderNotice');
+let currentSparkBalance = 0;
+let selectedSparkPrize = null;
+let sparkStatusLoading = null;
+
+function renderSparks(data = {}) {
+  currentSparkBalance = Number(data.balance || 0);
+  sparkBalance.textContent = String(currentSparkBalance);
+  claimSparks.disabled = Boolean(data.claimedToday);
+  claimSparks.textContent = data.claimedToday ? 'Награда получена' : 'Получить 25 Искорок';
+  sparkClaimHint.textContent = data.claimedToday ? 'Следующие 25 Искорок можно получить завтра.' : 'Ежедневная награда доступна один раз в сутки.';
+  document.querySelectorAll('[data-spark-prize]').forEach(card => {
+    const cost = Number(card.dataset.cost);
+    const ready = currentSparkBalance >= cost;
+    card.querySelector('progress').value = Math.min(currentSparkBalance, cost);
+    card.querySelector('.spark-progress-text').textContent = ready ? 'Приз доступен!' : `Осталось ${cost - currentSparkBalance}`;
+    card.querySelector('button').disabled = !ready;
+  });
+}
+
+async function loadSparkStatus(force = false) {
+  if (sparkStatusLoading && !force) return sparkStatusLoading;
+  sparkStatusLoading = (async () => {
+    try {
+      const response = await fetch(apiUrl('/api/sparks/status'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: WebApp?.initData || '' }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Не удалось загрузить Искорки.');
+      renderSparks(result);
+    } catch (error) {
+      sparkClaimHint.textContent = error.message || 'Искорки пока недоступны.';
+      claimSparks.disabled = true;
+    } finally { sparkStatusLoading = null; }
+  })();
+  return sparkStatusLoading;
+}
+
+claimSparks.addEventListener('click', async () => {
+  claimSparks.disabled = true;
+  try {
+    const response = await fetch(apiUrl('/api/sparks/claim'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: WebApp?.initData || '' }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Не удалось получить Искорки.');
+    renderSparks(result);
+    showAssistantMessage('1000022714.webp', result.awarded ? `Вам начислено ${result.awarded} Искорок! Текущий баланс: ${result.balance}.` : 'Сегодняшние Искорки уже получены. Возвращайтесь завтра!');
+  } catch (error) {
+    showToast(error.message || 'Не удалось получить Искорки.');
+    claimSparks.disabled = false;
+  }
+});
+
+document.querySelectorAll('[data-spark-prize] button').forEach(button => button.addEventListener('click', () => {
+  const card = button.closest('[data-spark-prize]');
+  selectedSparkPrize = { type: card.dataset.sparkPrize, cost: Number(card.dataset.cost) };
+  openSection('order');
+  orderTypes.classList.add('hidden');
+  orderForms.forEach(form => form.classList.toggle('hidden', form.dataset.orderForm !== selectedSparkPrize.type));
+  sparkOrderNotice.textContent = `Приз выбран: ${selectedSparkPrize.cost} Искорок. После отправки анкеты денежная оплата не потребуется.`;
+  sparkOrderNotice.classList.remove('hidden');
+  document.querySelector(`[data-order-form="${selectedSparkPrize.type}"]`)?.scrollIntoView({ block: 'start' });
+}));
 document.querySelector('#chatGreeting').textContent = maxDisplayName ? `${maxDisplayName}, вас приветствует Помощница` : 'Вас приветствует Помощница';
 document.querySelector('#supportRoute').addEventListener('click', () => { chatMode = 'support'; chatRoute.classList.add('hidden'); chatInput.placeholder = 'Напишите вопрос или сообщение...'; chatInput.focus(); });
 document.querySelector('#talkRoute').addEventListener('click', () => {
@@ -836,6 +914,8 @@ function addBubble(text, role) {
 const orderTypes = document.querySelector('#orderTypes');
 const orderForms = [...document.querySelectorAll('[data-order-form]')];
 function showOrderTypes() {
+  selectedSparkPrize = null;
+  sparkOrderNotice.classList.add('hidden');
   orderTypes.classList.remove('hidden');
   orderForms.forEach(form => form.classList.add('hidden'));
 }
@@ -864,7 +944,12 @@ function orderPayload(form) {
     const values = new FormData(form).getAll(name).map(String);
     if (values.length) data[name] = values;
   }
-  return { ...data, orderType: form.dataset.orderForm, initData: WebApp?.initData || '' };
+  return {
+    ...data,
+    orderType: form.dataset.orderForm,
+    paymentMethod: selectedSparkPrize?.type === form.dataset.orderForm ? 'sparks' : 'standard',
+    initData: WebApp?.initData || ''
+  };
 }
 function validateOrderChecks(form) {
   for (const group of form.querySelectorAll('[data-required-checks]')) {
@@ -886,10 +971,12 @@ orderForms.forEach(form => form.addEventListener('submit', async event => {
     const response = await fetch(apiUrl('/api/order'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Не удалось отправить анкету.');
+    const usedSparks = Boolean(result.paidWithSparks);
     form.reset();
     showOrderTypes();
+    if (usedSparks) loadSparkStatus(true);
     showAssistantMessage("1000022714.webp", result.notified
-      ? `Заказ №${result.orderNumber} принят. Мы свяжемся с вами по указанному контакту.`
+      ? (usedSparks ? `Приз оформлен! Заказ №${result.orderNumber} оплачен Искорками. Мы свяжемся с вами по указанному контакту.` : `Заказ №${result.orderNumber} принят. Мы свяжемся с вами по указанному контакту.`)
       : `Заказ №${result.orderNumber} сохранён. Мы увидим его в разделе «Анкеты».`);
   } catch (error) {
     showToast(error.message || 'Не удалось отправить анкету. Попробуйте ещё раз.');

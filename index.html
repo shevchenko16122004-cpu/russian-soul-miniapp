@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06162f">
   <link rel="preconnect" href="https://platform-api2.max.ru" crossorigin>
   <title>Русская душа. МУЗ-ЧАТ</title>
-  <link rel="stylesheet" href="./styles.css?v=48">
+  <link rel="stylesheet" href="./styles.css?v=49">
   <script src="https://st.max.ru/js/max-web-app.js"></script>
 </head>
 <body>
@@ -33,6 +33,11 @@
         <button class="feature-card order-card" data-open="order">
           <span class="feature-icon">✦</span>
           <span><strong>Заказать</strong><small>Песня, клип или комплекс</small></span>
+          <span class="arrow">→</span>
+        </button>
+        <button class="feature-card sparks-card" data-open="sparks">
+          <span class="feature-icon">✧</span>
+          <span><strong>Искорки</strong><small>Ежедневная награда и призы</small></span>
           <span class="arrow">→</span>
         </button>
       </section>
@@ -67,8 +72,23 @@
       <section id="catalog" class="catalog"></section>
     </main>
 
+    <main id="sparksView" class="view">
+      <section class="section-heading sparks-heading"><p class="eyebrow">Возвращайтесь каждый день</p><h2>Искорки</h2><p>Получайте по 25 Искорок за ежедневный вход и обменивайте накопленное на творческие призы.</p></section>
+      <section class="spark-balance-card">
+        <span>Ваш баланс</span><strong><b id="sparkBalance">0</b> ✨</strong>
+        <button id="claimSparks" class="primary-button" type="button">Получить 25 Искорок</button>
+        <small id="sparkClaimHint">Ежедневная награда доступна один раз в сутки.</small>
+      </section>
+      <section class="spark-prizes" aria-label="Призы за Искорки">
+        <article data-spark-prize="song" data-cost="1500"><div><span>♫</span><div><strong>Песня на заказ</strong><small><b>1500</b> Искорок</small></div></div><progress max="1500" value="0"></progress><p class="spark-progress-text">Осталось 1500</p><button type="button" disabled>Получить приз</button></article>
+        <article data-spark-prize="clip" data-cost="2000"><div><span>▶</span><div><strong>Клип</strong><small><b>2000</b> Искорок</small></div></div><progress max="2000" value="0"></progress><p class="spark-progress-text">Осталось 2000</p><button type="button" disabled>Получить приз</button></article>
+        <article data-spark-prize="complex" data-cost="2500"><div><span>✦</span><div><strong>Комплекс</strong><small><b>2500</b> Искорок</small></div></div><progress max="2500" value="0"></progress><p class="spark-progress-text">Осталось 2500</p><button type="button" disabled>Получить приз</button></article>
+      </section>
+    </main>
+
     <main id="orderView" class="view">
       <section class="section-heading"><p class="eyebrow">Ваша история — наше творчество</p><h2>Что хотите заказать?</h2><p>Выберите направление — откроется подходящая анкета.</p></section>
+      <div id="sparkOrderNotice" class="spark-order-notice hidden"></div>
       <section id="orderTypes" class="order-types" aria-label="Виды заказа">
         <button type="button" data-order-type="song"><span>♫</span><strong>Песня</strong><small>Создадим песню по вашей истории</small></button>
         <button type="button" data-order-type="clip"><span>▶</span><strong>Клип</strong><small>Создадим видеоклип для вашей песни</small></button>
@@ -177,11 +197,6 @@
     </div>
   </section>
   <div class="toast hidden" id="toast"></div>
-  <script type="module" src="./app.js?v=48"></script>
+  <script type="module" src="./app.js?v=49"></script>
 </body>
 </html>
-
-
-
-
-
