@@ -39,7 +39,7 @@ button { color: inherit; }
   position: relative;
 }
 
-.topbar { height: 72px; display: flex; align-items: center; gap: 11px; }
+.topbar { height: 72px; display: flex; align-items: center; gap: 8px; }
 .brand-mark {
   width: 42px;
   height: 42px;
@@ -66,6 +66,11 @@ button { color: inherit; }
   box-shadow: 0 8px 20px rgba(0, 7, 25, .2);
 }
 .back-button { margin-right: 2px; }
+.sparks-button { position: relative; color: #ffe7a3; background: radial-gradient(circle at 35% 30%, rgba(255,225,139,.24), rgba(42,35,87,.88)); border-color: rgba(242,197,109,.35); text-shadow: 0 0 10px rgba(255,215,112,.8); }
+@media (max-width: 360px) {
+  .topbar:has(.back-button:not(.hidden)) .brand-mark { display: none; }
+  .brand-copy strong { font-size: 16px; }
+}
 
 .view { display: none; animation: appear .2s ease both; }
 .view.active { display: block; }
@@ -95,7 +100,6 @@ h2 { font-size: 36px; }
 }
 .feature-card:active { transform: scale(.985); }
 .order-card { background: linear-gradient(135deg, rgba(23, 39, 83, .94), rgba(42, 28, 77, .92)); }
-.sparks-card { background: linear-gradient(135deg, rgba(73, 47, 105, .95), rgba(30, 63, 112, .94)); }
 .feature-icon {
   width: 56px;
   height: 56px;
@@ -108,7 +112,6 @@ h2 { font-size: 36px; }
   border: 1px solid rgba(146, 198, 247, .18);
 }
 .order-card .feature-icon { background: linear-gradient(145deg, #40346d, #282652); color: var(--gold-soft); }
-.sparks-card .feature-icon { background: radial-gradient(circle at 35% 30%, #ffe8a4, #d78a29 42%, #473366 78%); color: white; box-shadow: 0 0 24px rgba(242,197,109,.32); }
 .feature-card strong { font-family: Georgia, serif; display: block; font-size: 24px; color: #f8f0df; }
 .feature-card small { display: block; color: var(--muted); margin-top: 5px; }
 .arrow { font-size: 24px; color: var(--gold-soft); }

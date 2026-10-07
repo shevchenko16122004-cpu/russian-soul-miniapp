@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#06162f">
   <link rel="preconnect" href="https://platform-api2.max.ru" crossorigin>
   <title>Русская душа. МУЗ-ЧАТ</title>
-  <link rel="stylesheet" href="./styles.css?v=49">
+  <link rel="stylesheet" href="./styles.css?v=50">
   <script src="https://st.max.ru/js/max-web-app.js"></script>
 </head>
 <body>
@@ -15,6 +15,7 @@
       <button class="icon-button back-button hidden" id="backButton" aria-label="Назад">←</button>
       <div class="brand-mark">РД</div>
       <div class="brand-copy"><strong>Русская душа</strong><span>МУЗ-ЧАТ</span></div>
+      <button class="icon-button sparks-button" id="sparksButton" data-open="sparks" aria-label="Открыть Искорки">✧</button>
       <button class="icon-button" id="helpButton" aria-label="Пройти обучение заново">?</button>
     </header>
 
@@ -33,11 +34,6 @@
         <button class="feature-card order-card" data-open="order">
           <span class="feature-icon">✦</span>
           <span><strong>Заказать</strong><small>Песня, клип или комплекс</small></span>
-          <span class="arrow">→</span>
-        </button>
-        <button class="feature-card sparks-card" data-open="sparks">
-          <span class="feature-icon">✧</span>
-          <span><strong>Искорки</strong><small>Ежедневная награда и призы</small></span>
           <span class="arrow">→</span>
         </button>
       </section>
@@ -197,6 +193,6 @@
     </div>
   </section>
   <div class="toast hidden" id="toast"></div>
-  <script type="module" src="./app.js?v=49"></script>
+  <script type="module" src="./app.js?v=50"></script>
 </body>
 </html>
