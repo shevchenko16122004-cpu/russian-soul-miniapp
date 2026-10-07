@@ -478,7 +478,15 @@ button { cursor: pointer; transition: transform .15s ease, background-color .15s
 .assistant-stage .assistant-portrait { left: 10px; bottom: calc(100% - 8px); }
 .portrait-right .assistant-stage .assistant-portrait { left: auto; right: 10px; }
 .stage-top .assistant-stage { top: calc(12px + env(safe-area-inset-top)); bottom: auto; }
-.stage-top .assistant-stage .assistant-portrait { top: calc(100% + 8px); bottom: auto; height: min(24dvh, 180px, calc(100vw - 170px)); }
+.stage-top .assistant-stage .assistant-copy { min-height: 158px; padding-left: 126px; }
+.stage-top .assistant-stage .assistant-portrait {
+  top: 14px;
+  bottom: auto;
+  left: 12px;
+  width: 100px;
+  height: 132px;
+  overflow: hidden;
+}
 
 /* Preserve all source pixels and crossfade decoded portraits without resizing. */
 .assistant-stage .assistant-portrait { overflow: visible; }
