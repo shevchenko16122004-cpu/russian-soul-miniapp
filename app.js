@@ -30,6 +30,10 @@ const tracks = {
 try { Object.assign(tracks, JSON.parse(localStorage.getItem("muzCatalogCacheV17") || "{}")); } catch (_) {}
 let catalogLoading = false;
 let catalogPromise;
+let musicInitialized = false;
+const playbackKeeper = document.createElement("div");
+playbackKeeper.className = "playback-keeper";
+document.body.append(playbackKeeper);
 const cleanTitle = title => String(title || "Без названия").replace(/\.(mp3|mp4|m4a|wav|ogg|webm|zip)$/i, "");
 const cleanTrackTitle = title => cleanTitle(title).replace(/^\s*\d+\s*[._)\]-]+\s*/, "").trim() || "Без названия";
 const clipPosterKey = id => `muzClipPosterV1:${id}`;
@@ -109,10 +113,13 @@ function openSection(name) {
   if (name === "order") showOrderTypes();
   if (name === "sparks") loadSparkStatus();
   if (name === "music") {
-    catalogLoading = true;
-    document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.tab === "songs"));
-    renderCatalog("songs");
-    catalogPromise ||= loadPublishedCatalog();
+    if (!musicInitialized) {
+      musicInitialized = true;
+      catalogLoading = true;
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.toggle("active", tab.dataset.tab === "songs"));
+      renderCatalog("songs");
+      catalogPromise ||= loadPublishedCatalog();
+    }
   }
   window.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -158,6 +165,8 @@ document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", (
 }));
 
 function renderCatalog(type) {
+  const playingTrack = [...catalog.querySelectorAll("audio.media-engine")].find(media => !media.paused)?.closest(".track");
+  if (playingTrack) playbackKeeper.replaceChildren(playingTrack);
   let items = type === "favorites"
     ? Object.values(tracks).flat().filter(item => favorites.has(item.id))
     : tracks[type] || [];
@@ -172,7 +181,7 @@ function renderCatalog(type) {
 
   catalog.innerHTML = sortedItems.length
     ? sortedItems.map((item, index) => `
-      <article class="track ${item.kind === "video" ? "clip-track" : item.kind === "playlist" ? "playlist-track" : ""}">
+      <article class="track ${item.kind === "video" ? "clip-track" : item.kind === "playlist" ? "playlist-track" : ""}" data-track-id="${item.id}">
         ${item.kind === "video" ? "" : `<div class="cover">${item.cover ? `<img data-image-src="${item.cover}" alt="" onerror="this.parentElement.textContent='♫';">` : "♫"}</div>`}
         <div class="track-main"><strong>${cleanTitle(item.title)}</strong><small>${item.kind === "playlist" ? `${item.playlistTracks.length} песен` : item.meta}</small>${item.mediaUrl && item.kind === "song" ? `<audio class="media-engine" preload="none" data-media-src="${item.mediaUrl}" data-fallback="${item.fallbackUrl || ""}" data-duration-key="${item.id}"></audio><div class="custom-player"><button class="audio-toggle" type="button" aria-label="Воспроизвести">▶</button><span class="audio-current">0:00</span><span class="audio-separator">/</span><span class="audio-duration">${formatDuration(item.duration || mediaDurations[item.id])}</span></div>` : item.mediaUrl && item.kind === "video" ? `<video class="compact-player ${getClipPoster(item.id) || item.cover ? "frame-ready" : ""}" playsinline preload="none" data-media-src="${item.previewUrl || item.fallbackUrl || item.mediaUrl}" data-play-src="${item.mediaUrl}" data-fallback="${item.fallbackUrl || ""}" data-poster-id="${item.id}" ${clipPosterAttribute(item)}></video><button class="open-clip" type="button">▶ Смотреть клип</button>` : item.kind === "playlist" ? `<button class="open-playlist" type="button" data-playlist="${item.remoteId}">Открыть плейлист</button><div class="playlist-songs hidden"></div>` : ""}</div>
         <div class="track-actions">
@@ -181,6 +190,8 @@ function renderCatalog(type) {
         </div>
       </article>`).join("")
     : `<div class="empty">${catalogLoading ? "Загружаем материалы…" : query ? "По вашему запросу ничего не найдено." : "Здесь пока пусто. Новинки появятся совсем скоро."}</div>`;
+
+  restoreRetainedTrack(catalog);
 
   catalog.querySelectorAll("[data-favorite]").forEach(button => button.addEventListener("click", () => toggleFavorite(button.dataset.favorite, type)));
   catalog.querySelectorAll("[data-repeat]").forEach(button => button.addEventListener("click", () => toggleRepeat(button)));
@@ -227,11 +238,19 @@ function togglePlaylist(button, item) {
     const source = track.mediaUrl || apiUrl(`/api/playlists/${item.remoteId}/tracks/${track.index ?? index}`);
     const fallback = track.fallbackUrl || apiUrl(`/api/playlists/${item.remoteId}/tracks/${track.index ?? index}`);
     const key = `playlist-${item.remoteId}-${track.index ?? index}`;
-    return `<article class="playlist-song track"><div class="cover">♫</div><div class="track-main"><strong>${cleanTrackTitle(track.title || track.name)}</strong><small>Русская душа</small><audio class="media-engine" preload="none" data-media-src="${source}" data-fallback="${fallback}" data-duration-key="${key}"></audio><div class="custom-player"><button class="audio-toggle" type="button" aria-label="Воспроизвести">▶</button><span class="audio-current">0:00</span><span class="audio-separator">/</span><span class="audio-duration">${formatDuration(mediaDurations[key])}</span></div></div><div class="track-actions"><button class="repeat-track ${repeatingTracks.has(key) ? "on" : ""}" data-repeat="${key}" type="button" aria-label="Повторять песню" aria-pressed="${repeatingTracks.has(key)}">↻</button></div></article>`;
+    return `<article class="playlist-song track" data-track-id="${key}"><div class="cover">♫</div><div class="track-main"><strong>${cleanTrackTitle(track.title || track.name)}</strong><small>Русская душа</small><audio class="media-engine" preload="none" data-media-src="${source}" data-fallback="${fallback}" data-duration-key="${key}"></audio><div class="custom-player"><button class="audio-toggle" type="button" aria-label="Воспроизвести">▶</button><span class="audio-current">0:00</span><span class="audio-separator">/</span><span class="audio-duration">${formatDuration(mediaDurations[key])}</span></div></div><div class="track-actions"><button class="repeat-track ${repeatingTracks.has(key) ? "on" : ""}" data-repeat="${key}" type="button" aria-label="Повторять песню" aria-pressed="${repeatingTracks.has(key)}">↻</button></div></article>`;
   }).join("") : '<p class="playlist-empty">В плейлисте пока нет песен.</p>';
+  restoreRetainedTrack(list);
   list.querySelectorAll("[data-repeat]").forEach(button => button.addEventListener("click", () => toggleRepeat(button)));
   setupAudioPlayers(list);
   setupCatalogMedia(list);
+}
+
+function restoreRetainedTrack(scope) {
+  const retainedTrack = playbackKeeper.querySelector(".track[data-track-id]");
+  if (!retainedTrack) return;
+  const placeholder = [...scope.querySelectorAll(".track[data-track-id]")].find(item => item.dataset.trackId === retainedTrack.dataset.trackId);
+  if (placeholder) placeholder.replaceWith(retainedTrack);
 }
 
 function setupAudioPlayers(scope) {
@@ -334,6 +353,8 @@ function toggleRepeat(button) {
 }
 
 function openClip(inlineVideo, sourceButton) {
+  const clips = [...catalog.querySelectorAll("video.compact-player")];
+  let clipIndex = Math.max(0, clips.indexOf(inlineVideo));
   const overlay = document.createElement("div");
   overlay.className = "clip-overlay";
   const close = document.createElement("button");
@@ -343,38 +364,66 @@ function openClip(inlineVideo, sourceButton) {
   rotate.className = "clip-rotate";
   rotate.textContent = "⤢ Повернуть";
   const player = document.createElement("video");
-  const primarySource = inlineVideo.dataset.mediaSrc || inlineVideo.dataset.fallback || inlineVideo.currentSrc || inlineVideo.src;
-  const fallbackSource = inlineVideo.dataset.playSrc || inlineVideo.dataset.fallback;
   player.controls = true;
   player.playsInline = true;
   player.preload = "auto";
-  player.poster = inlineVideo.poster || "";
   sourceButton?.classList.add("loading");
   let wantsPlayback = true;
   let playbackTimer;
+  let stallTimer;
+  let lastProgress = 0;
+  let recoveryAttempts = 0;
+  let activeInline = inlineVideo;
+  let activeButton = sourceButton;
   const play = () => { if (wantsPlayback && player.paused) player.play().catch(() => {}); };
-  player.addEventListener("error", () => {
-    if (!fallbackSource || player.dataset.fallbackUsed) {
-      sourceButton?.classList.remove("loading");
-      return showToast("Не удалось загрузить клип. Попробуйте ещё раз.");
-    }
-    player.dataset.fallbackUsed = "1";
-    player.src = fallbackSource;
+  const sources = () => ({ primary: activeInline.dataset.mediaSrc || activeInline.dataset.fallback || activeInline.currentSrc || activeInline.src, fallback: activeInline.dataset.playSrc || activeInline.dataset.fallback });
+  const loadSource = (source, resumeAt = 0) => {
+    if (!source) return;
+    clearTimeout(playbackTimer);
+    clearTimeout(stallTimer);
+    player.src = source;
     player.load();
+    if (resumeAt > 0) player.addEventListener("loadedmetadata", () => { try { player.currentTime = resumeAt; } catch (_) {} }, { once: true });
     play();
-  });
-  player.addEventListener("canplay", () => { sourceButton?.classList.remove("loading"); play(); });
-  player.addEventListener("playing", () => { clearTimeout(playbackTimer); sourceButton?.classList.remove("loading"); });
+  };
+  const recoverPlayback = () => {
+    if (!wantsPlayback || (!player.paused && player.readyState >= 3)) return;
+    recoveryAttempts += 1;
+    if (recoveryAttempts > 3) {
+      activeButton?.classList.remove("loading");
+      return showToast("Клип не удалось догрузить. Попробуйте следующий и вернитесь к нему позже.");
+    }
+    const resumeAt = Number.isFinite(player.currentTime) ? player.currentTime : 0;
+    const { fallback } = sources();
+    if (!player.dataset.fallbackUsed && fallback && fallback !== player.currentSrc) {
+      player.dataset.fallbackUsed = "1";
+      loadSource(fallback, resumeAt);
+    } else loadSource(player.currentSrc || sources().primary, resumeAt);
+  };
+  const armStallRecovery = () => {
+    clearTimeout(stallTimer);
+    const progressAtStart = player.currentTime;
+    stallTimer = setTimeout(() => {
+      if (wantsPlayback && player.currentTime <= progressAtStart + 0.05) recoverPlayback();
+    }, 6000);
+  };
+  player.addEventListener("error", recoverPlayback);
+  player.addEventListener("waiting", armStallRecovery);
+  player.addEventListener("stalled", armStallRecovery);
+  player.addEventListener("canplay", () => { activeButton?.classList.remove("loading"); play(); });
+  player.addEventListener("playing", () => { clearTimeout(playbackTimer); clearTimeout(stallTimer); recoveryAttempts = 0; activeButton?.classList.remove("loading"); });
+  player.addEventListener("timeupdate", () => { if (player.currentTime > lastProgress + .2) { lastProgress = player.currentTime; clearTimeout(stallTimer); } });
   inlineVideo.pause();
   close.addEventListener("click", () => {
     wantsPlayback = false;
     clearTimeout(playbackTimer);
+    clearTimeout(stallTimer);
     player.pause();
     player.removeAttribute("src");
     player.load();
-    const savedPoster = getClipPoster(inlineVideo.dataset.posterId);
-    if (savedPoster) inlineVideo.poster = savedPoster;
-    sourceButton?.classList.remove("loading");
+    const savedPoster = getClipPoster(activeInline.dataset.posterId);
+    if (savedPoster) activeInline.poster = savedPoster;
+    activeButton?.classList.remove("loading");
     overlay.remove();
   });
   rotate.addEventListener("click", () => {
@@ -384,18 +433,37 @@ function openClip(inlineVideo, sourceButton) {
   const actions = document.createElement("div");
   actions.className = "clip-actions";
   actions.append(rotate, close);
-  overlay.append(actions, player);
+  const previous = document.createElement("button");
+  previous.className = "clip-nav clip-previous";
+  previous.textContent = "‹";
+  previous.setAttribute("aria-label", "Предыдущий клип");
+  const next = document.createElement("button");
+  next.className = "clip-nav clip-next";
+  next.textContent = "›";
+  next.setAttribute("aria-label", "Следующий клип");
+  const showClip = index => {
+    if (!clips.length) return;
+    activeButton?.classList.remove("loading");
+    clipIndex = (index + clips.length) % clips.length;
+    activeInline = clips[clipIndex];
+    activeButton = activeInline.nextElementSibling;
+    activeButton?.classList.add("loading");
+    activeInline.pause();
+    player.poster = activeInline.poster || getClipPoster(activeInline.dataset.posterId) || "";
+    player.dataset.fallbackUsed = "";
+    lastProgress = 0;
+    recoveryAttempts = 0;
+    loadSource(sources().primary);
+    playbackTimer = setTimeout(() => {
+      if (!wantsPlayback || player.currentTime > 0.1) return;
+      recoverPlayback();
+    }, 7000);
+  };
+  previous.addEventListener("click", () => showClip(clipIndex - 1));
+  next.addEventListener("click", () => showClip(clipIndex + 1));
+  overlay.append(actions, previous, player, next);
   document.body.append(overlay);
-  player.src = primarySource;
-  player.load();
-  play();
-  playbackTimer = setTimeout(() => {
-    if (!wantsPlayback || player.dataset.fallbackUsed || !fallbackSource || player.currentTime > 0.1) return;
-    player.dataset.fallbackUsed = "1";
-    player.src = fallbackSource;
-    player.load();
-    play();
-  }, 7000);
+  showClip(clipIndex);
 }
 
 function toggleFavorite(id, currentType) {
