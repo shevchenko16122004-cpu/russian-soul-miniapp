@@ -58,6 +58,7 @@ function saveClipPoster(video, id) {
 }
 
 let favorites = new Set(JSON.parse(localStorage.getItem("muzFavorites") || "[]"));
+let repeatingTracks = new Set(JSON.parse(localStorage.getItem("muzRepeatingTracks") || "[]"));
 const catalogSort = document.querySelector("#catalogSort");
 const catalogSearch = document.querySelector("#catalogSearch");
 const shuffleCatalog = document.querySelector("#shuffleCatalog");
@@ -174,11 +175,15 @@ function renderCatalog(type) {
       <article class="track ${item.kind === "video" ? "clip-track" : item.kind === "playlist" ? "playlist-track" : ""}">
         ${item.kind === "video" ? "" : `<div class="cover">${item.cover ? `<img data-image-src="${item.cover}" alt="" onerror="this.parentElement.textContent='♫';">` : "♫"}</div>`}
         <div class="track-main"><strong>${cleanTitle(item.title)}</strong><small>${item.kind === "playlist" ? `${item.playlistTracks.length} песен` : item.meta}</small>${item.mediaUrl && item.kind === "song" ? `<audio class="media-engine" preload="none" data-media-src="${item.mediaUrl}" data-fallback="${item.fallbackUrl || ""}" data-duration-key="${item.id}"></audio><div class="custom-player"><button class="audio-toggle" type="button" aria-label="Воспроизвести">▶</button><span class="audio-current">0:00</span><span class="audio-separator">/</span><span class="audio-duration">${formatDuration(item.duration || mediaDurations[item.id])}</span></div>` : item.mediaUrl && item.kind === "video" ? `<video class="compact-player ${getClipPoster(item.id) || item.cover ? "frame-ready" : ""}" playsinline preload="none" data-media-src="${item.previewUrl || item.fallbackUrl || item.mediaUrl}" data-play-src="${item.mediaUrl}" data-fallback="${item.fallbackUrl || ""}" data-poster-id="${item.id}" ${clipPosterAttribute(item)}></video><button class="open-clip" type="button">▶ Смотреть клип</button>` : item.kind === "playlist" ? `<button class="open-playlist" type="button" data-playlist="${item.remoteId}">Открыть плейлист</button><div class="playlist-songs hidden"></div>` : ""}</div>
-        <button class="favorite ${favorites.has(item.id) ? "on" : ""}" data-favorite="${item.id}" aria-label="В любимое">♥</button>
+        <div class="track-actions">
+          ${item.kind === "song" ? `<button class="repeat-track ${repeatingTracks.has(item.id) ? "on" : ""}" data-repeat="${item.id}" type="button" aria-label="Повторять песню" aria-pressed="${repeatingTracks.has(item.id)}">↻</button>` : ""}
+          <button class="favorite ${favorites.has(item.id) ? "on" : ""}" data-favorite="${item.id}" aria-label="В любимое">♥</button>
+        </div>
       </article>`).join("")
     : `<div class="empty">${catalogLoading ? "Загружаем материалы…" : query ? "По вашему запросу ничего не найдено." : "Здесь пока пусто. Новинки появятся совсем скоро."}</div>`;
 
   catalog.querySelectorAll("[data-favorite]").forEach(button => button.addEventListener("click", () => toggleFavorite(button.dataset.favorite, type)));
+  catalog.querySelectorAll("[data-repeat]").forEach(button => button.addEventListener("click", () => toggleRepeat(button)));
   catalog.querySelectorAll("video").forEach(media => {
     media.addEventListener("pointerdown", () => { media.dataset.userRequested = String(Date.now()); });
     media.addEventListener("play", () => {
@@ -222,8 +227,9 @@ function togglePlaylist(button, item) {
     const source = track.mediaUrl || apiUrl(`/api/playlists/${item.remoteId}/tracks/${track.index ?? index}`);
     const fallback = track.fallbackUrl || apiUrl(`/api/playlists/${item.remoteId}/tracks/${track.index ?? index}`);
     const key = `playlist-${item.remoteId}-${track.index ?? index}`;
-    return `<article class="playlist-song track"><div class="cover">♫</div><div class="track-main"><strong>${cleanTrackTitle(track.title || track.name)}</strong><small>Русская душа</small><audio class="media-engine" preload="none" data-media-src="${source}" data-fallback="${fallback}" data-duration-key="${key}"></audio><div class="custom-player"><button class="audio-toggle" type="button" aria-label="Воспроизвести">▶</button><span class="audio-current">0:00</span><span class="audio-separator">/</span><span class="audio-duration">${formatDuration(mediaDurations[key])}</span></div></div></article>`;
+    return `<article class="playlist-song track"><div class="cover">♫</div><div class="track-main"><strong>${cleanTrackTitle(track.title || track.name)}</strong><small>Русская душа</small><audio class="media-engine" preload="none" data-media-src="${source}" data-fallback="${fallback}" data-duration-key="${key}"></audio><div class="custom-player"><button class="audio-toggle" type="button" aria-label="Воспроизвести">▶</button><span class="audio-current">0:00</span><span class="audio-separator">/</span><span class="audio-duration">${formatDuration(mediaDurations[key])}</span></div></div><div class="track-actions"><button class="repeat-track ${repeatingTracks.has(key) ? "on" : ""}" data-repeat="${key}" type="button" aria-label="Повторять песню" aria-pressed="${repeatingTracks.has(key)}">↻</button></div></article>`;
   }).join("") : '<p class="playlist-empty">В плейлисте пока нет песен.</p>';
+  list.querySelectorAll("[data-repeat]").forEach(button => button.addEventListener("click", () => toggleRepeat(button)));
   setupAudioPlayers(list);
   setupCatalogMedia(list);
 }
@@ -235,6 +241,8 @@ function setupAudioPlayers(scope) {
     const player = media.nextElementSibling;
     const toggle = player.querySelector(".audio-toggle");
     const current = player.querySelector(".audio-current");
+    const trackKey = media.dataset.durationKey || "";
+    media.loop = repeatingTracks.has(trackKey);
     media.volume = 1;
     let wantsPlayback = false;
     let fallbackUsed = false;
@@ -295,12 +303,34 @@ function setupAudioPlayers(scope) {
     });
     media.addEventListener("canplay", () => { if (wantsPlayback && media.paused) media.play().catch(() => {}); });
     media.addEventListener("pause", () => { toggle.textContent = "▶"; toggle.classList.remove("playing"); if (!wantsPlayback) toggle.classList.remove("loading"); });
-    media.addEventListener("ended", () => { wantsPlayback = false; toggle.textContent = "▶"; toggle.classList.remove("playing"); });
+    media.addEventListener("ended", () => {
+      if (media.loop) return;
+      wantsPlayback = false;
+      toggle.textContent = "▶";
+      toggle.classList.remove("playing");
+      const playable = [...document.querySelectorAll("audio.media-engine")].filter(item => item.closest(".track")?.offsetParent !== null);
+      const next = playable[playable.indexOf(media) + 1];
+      next?.nextElementSibling?.querySelector(".audio-toggle")?.click();
+    });
     media.addEventListener("timeupdate", () => {
       current.textContent = formatDuration(media.currentTime).replace("…", "0:00");
       if (media.currentTime > 0.1) clearTimeout(playbackTimer);
     });
   });
+}
+
+function toggleRepeat(button) {
+  const key = button.dataset.repeat;
+  if (!key) return;
+  if (repeatingTracks.has(key)) repeatingTracks.delete(key);
+  else repeatingTracks.add(key);
+  localStorage.setItem("muzRepeatingTracks", JSON.stringify([...repeatingTracks]));
+  const enabled = repeatingTracks.has(key);
+  button.classList.toggle("on", enabled);
+  button.setAttribute("aria-pressed", String(enabled));
+  const media = button.closest(".track")?.querySelector("audio.media-engine");
+  if (media) media.loop = enabled;
+  showToast(enabled ? "Повтор песни включён" : "Повтор песни выключен");
 }
 
 function openClip(inlineVideo, sourceButton) {
@@ -700,9 +730,24 @@ const sparkOrderNotice = document.querySelector('#sparkOrderNotice');
 let currentSparkBalance = 0;
 let selectedSparkPrize = null;
 let sparkStatusLoading = null;
+const sparkBalanceCacheKey = 'muzSparkBalanceV1';
+
+function currentMaxWebApp() {
+  return window.WebApp || WebApp;
+}
+
+async function maxInitData() {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const value = currentMaxWebApp()?.initData;
+    if (value) return value;
+    await new Promise(resolve => setTimeout(resolve, 150));
+  }
+  return '';
+}
 
 function renderSparks(data = {}) {
   currentSparkBalance = Number(data.balance || 0);
+  localStorage.setItem(sparkBalanceCacheKey, String(currentSparkBalance));
   sparkBalance.textContent = String(currentSparkBalance);
   claimSparks.disabled = Boolean(data.claimedToday);
   claimSparks.textContent = data.claimedToday ? 'Награда получена' : 'Получить 25 Искорок';
@@ -720,7 +765,13 @@ async function loadSparkStatus(force = false) {
   if (sparkStatusLoading && !force) return sparkStatusLoading;
   sparkStatusLoading = (async () => {
     try {
-      const response = await fetch(apiUrl('/api/sparks/status'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: WebApp?.initData || '' }) });
+      const cachedBalance = Number(localStorage.getItem(sparkBalanceCacheKey));
+      if (Number.isFinite(cachedBalance) && cachedBalance > 0) sparkBalance.textContent = String(cachedBalance);
+      sparkClaimHint.textContent = 'Проверяем баланс…';
+      claimSparks.disabled = true;
+      const initData = await maxInitData();
+      if (!initData) throw new Error('Не удалось получить данные MAX. Закройте и снова откройте мини-приложение.');
+      const response = await fetch(apiUrl('/api/sparks/status'), { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Не удалось загрузить Искорки.');
       renderSparks(result);
@@ -735,7 +786,9 @@ async function loadSparkStatus(force = false) {
 claimSparks.addEventListener('click', async () => {
   claimSparks.disabled = true;
   try {
-    const response = await fetch(apiUrl('/api/sparks/claim'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData: WebApp?.initData || '' }) });
+    const initData = await maxInitData();
+    if (!initData) throw new Error('Не удалось получить данные MAX. Закройте и снова откройте мини-приложение.');
+    const response = await fetch(apiUrl('/api/sparks/claim'), { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Не удалось получить Искорки.');
     renderSparks(result);

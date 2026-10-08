@@ -210,6 +210,10 @@ h2 { font-size: 36px; }
 .clip-overlay.rotated video { position: absolute; width: 100dvh; height: 100dvw; max-height: none; max-width: none; transform: rotate(90deg); }
 .favorite { border: 0; background: transparent; font-size: 23px; color: #70809a; }
 .favorite.on { color: var(--gold); }
+.track-actions { display: grid; align-content: center; justify-items: center; gap: 7px; flex: 0 0 34px; }
+.track-actions .favorite { padding: 2px; }
+.repeat-track { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid rgba(143,178,218,.2); border-radius: 50%; color: #8192aa; background: rgba(6,25,53,.55); font-size: 20px; font-weight: 800; }
+.repeat-track.on { color: #fff1bf; border-color: rgba(242,197,109,.7); background: rgba(183,119,36,.28); box-shadow: 0 0 10px rgba(242,197,109,.3); }
 .empty { padding: 34px 20px; border: 1px dashed var(--line-strong); border-radius: 22px; text-align: center; color: var(--muted); background: rgba(7, 25, 51, .44); }
 
 .sparks-heading { padding-bottom: 16px; }
