@@ -8,6 +8,13 @@ const WebApp = window.WebApp;
 WebApp?.ready?.();
 WebApp?.expand?.();
 
+setTimeout(async () => {
+  try {
+    const initData = await maxInitData();
+    if (initData) await fetch(apiUrl('/api/activity'), { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initData }) });
+  } catch (_) {}
+}, 400);
+
 const views = {
   main: document.querySelector("#mainView"),
   music: document.querySelector("#musicView"),
