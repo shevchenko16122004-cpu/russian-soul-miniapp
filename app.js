@@ -1066,7 +1066,7 @@ orderForms.forEach(form => {
   form.querySelector('.lyrics-choice')?.addEventListener('change', () => updateLyricsFields(form));
   updateLyricsFields(form);
 });
-function orderPayload(form) {
+function orderPayload(form, initData) {
   const data = Object.fromEntries(new FormData(form));
   for (const name of ['clipPurpose', 'textElements']) {
     const values = new FormData(form).getAll(name).map(String);
@@ -1076,7 +1076,7 @@ function orderPayload(form) {
     ...data,
     orderType: form.dataset.orderForm,
     paymentMethod: selectedSparkPrize?.type === form.dataset.orderForm ? 'sparks' : 'standard',
-    initData: WebApp?.initData || ''
+    initData
   };
 }
 function validateOrderChecks(form) {
@@ -1093,9 +1093,11 @@ orderForms.forEach(form => form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!validateOrderChecks(form)) return;
   const button = form.querySelector('button[type="submit"]');
-  const data = orderPayload(form);
   button.disabled = true;
   try {
+    const initData = await maxInitData();
+    if (!initData) throw new Error('Не удалось получить ваш аккаунт MAX. Закройте мини‑приложение и снова откройте его из музыкального бота.');
+    const data = orderPayload(form, initData);
     const response = await fetch(apiUrl('/api/order'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Не удалось отправить анкету.');
